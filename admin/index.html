@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>문의 관리 | NEOSAD 어드민</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --bk:#0E0E10; --ink:#16161A; --g1:#55555E; --g2:#8E8E98; --line:#E6E6EA; --soft:#F4F4F6;
+    --blue:#2B59FF; --yel:#FFE14D; --red:#FF4B3E; --green:#13A452;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Pretendard Variable",Pretendard,-apple-system,"Malgun Gothic",sans-serif;background:var(--soft);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .hide{display:none!important}
+
+  /* 로그인 */
+  .login{min-height:100vh;display:grid;place-items:center;padding:20px}
+  .login form{width:100%;max-width:360px;background:#fff;border-radius:20px;padding:32px 24px;box-shadow:0 20px 40px -24px rgba(0,0,0,.3)}
+  .logo{font-size:20px;font-weight:900;letter-spacing:-.04em}
+  .logo i{font-style:normal;color:var(--blue)}
+  .login h1{margin-top:18px;font-size:22px;font-weight:900;letter-spacing:-.03em}
+  .login p{margin-top:4px;color:var(--g2)}
+  .login label{display:block;margin-top:16px;font-size:13px;font-weight:700}
+  .login input{width:100%;height:48px;margin-top:6px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font-size:15px;outline:none}
+  .login input:focus{border-color:var(--ink)}
+  .btn{height:48px;border:0;border-radius:12px;background:var(--bk);color:#fff;font-weight:800;cursor:pointer;padding:0 16px}
+  .btn.blue{background:var(--blue)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .login .btn{width:100%;margin-top:22px}
+  .err{margin-top:12px;color:var(--red);font-size:13px;min-height:18px}
+
+  /* 상단 */
+  .top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px;height:60px;padding:0 20px;background:var(--bk);color:#fff}
+  .top .logo{font-size:18px}
+  .top .tag{font-size:12px;color:#9A9AA4;border:1px solid #33333A;border-radius:999px;padding:3px 9px}
+  .top .me{margin-left:auto;font-size:13px;color:#B9B9C2}
+  .top button{height:34px;border-radius:999px;border:1px solid #3A3A42;background:transparent;color:#fff;padding:0 14px;cursor:pointer;font-size:13px;font-weight:700}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+
+  /* 요약 */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .stat{background:#fff;border-radius:16px;padding:16px 18px;cursor:pointer;border:2px solid transparent;text-align:left}
+  .stat.on{border-color:var(--ink)}
+  .stat small{display:block;font-size:12.5px;color:var(--g2);font-weight:700}
+  .stat b{display:block;font-size:28px;font-weight:900;letter-spacing:-.03em;margin-top:2px}
+  .stat.new b{color:var(--blue)}
+
+  /* 필터 */
+  .bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+  .bar select,.bar input{height:40px;border:1.5px solid var(--line);border-radius:10px;background:#fff;padding:0 12px;outline:none}
+  .bar input[type=search]{flex:1;min-width:180px}
+  .bar .btn{height:40px;font-size:13px}
+  .bar .count{margin-left:auto;color:var(--g2);font-size:13px}
+
+  /* 목록 */
+  .list{margin-top:14px;background:#fff;border-radius:16px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:12px;color:var(--g2);font-weight:700;padding:12px 14px;border-bottom:1px solid var(--line);background:#FAFAFB;white-space:nowrap}
+  td{padding:14px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr.row{cursor:pointer}
+  tr.row:hover td{background:#FAFAFC}
+  tr.row.sel td{background:#EEF2FF}
+  .when{color:var(--g1);white-space:nowrap;font-size:13px}
+  .ind{display:inline-block;font-size:12px;font-weight:800;background:var(--soft);padding:4px 8px;border-radius:6px;white-space:nowrap}
+  .nm{font-weight:800}
+  .ph{font-feature-settings:"tnum";white-space:nowrap}
+  .src{font-size:12px;color:var(--g2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+  .b-신규{background:#E8EDFF;color:var(--blue)}
+  .b-연락중{background:#FFF6D6;color:#8A6A00}
+  .b-상담완료{background:#E7F7EE;color:var(--green)}
+  .b-계약{background:var(--bk);color:#fff}
+  .b-보류{background:var(--soft);color:var(--g1)}
+  .b-무효{background:#FFECEB;color:var(--red)}
+  .empty{padding:60px 20px;text-align:center;color:var(--g2)}
+  .more{display:block;width:100%;height:46px;border:0;background:#FAFAFB;color:var(--g1);font-weight:700;cursor:pointer}
+
+  /* 상세 패널 */
+  .dim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20}
+  .panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100%;background:#fff;z-index:21;display:flex;flex-direction:column;box-shadow:-20px 0 40px -20px rgba(0,0,0,.3)}
+  .panel .ph1{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+  .panel .ph1 b{font-size:17px;font-weight:900}
+  .panel .x{width:34px;height:34px;border-radius:50%;border:0;background:var(--soft);cursor:pointer;font-size:16px}
+  .panel .body{flex:1;overflow:auto;padding:20px}
+  .call{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:14px;background:var(--blue);color:#fff;text-decoration:none;font-size:17px;font-weight:800}
+  dl.info{margin-top:18px}
+  dl.info div{display:flex;padding:11px 0;border-bottom:1px solid var(--line);gap:12px}
+  dl.info dt{width:84px;flex:none;color:var(--g2);font-size:13px}
+  dl.info dd{flex:1;font-weight:600;word-break:break-all;white-space:pre-wrap}
+  .edit{margin-top:22px}
+  .edit label{display:block;font-size:13px;font-weight:800;margin-bottom:8px}
+  .sts{display:flex;flex-wrap:wrap;gap:6px}
+  .sts button{height:36px;padding:0 13px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font-weight:700;cursor:pointer}
+  .sts button.on{background:var(--bk);border-color:var(--bk);color:#fff}
+  .edit textarea{width:100%;height:120px;border:1.5px solid var(--line);border-radius:12px;padding:12px;resize:vertical;outline:none}
+  .edit textarea:focus{border-color:var(--ink)}
+  .panel .foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .panel .foot .msg{font-size:13px;color:var(--green);margin-right:auto}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bk);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:40}
+
+  /* 모바일: 표 → 카드 */
+  @media (max-width:760px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .top .me{display:none}
+    thead{display:none}
+    table,tbody,tr,td{display:block;width:100%}
+    tr.row{padding:14px 16px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:4px 10px}
+    tr.row td{padding:0;border:0;background:none!important}
+    tr.row td.c-when{grid-column:1/-1;order:-1}
+    tr.row td.c-src,tr.row td.c-ad{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div class="login" id="loginView">
+  <form id="loginForm">
+    <div class="logo">NEOS<i>AD</i></div>
+    <h1>문의 관리</h1>
+    <p>관리자 비밀번호를 입력하세요</p>
+    <input type="text" name="username" value="neosad-admin" autocomplete="username" hidden>
+    <label>비밀번호<input type="password" name="pw" autocomplete="current-password" required></label>
+    <button class="btn" type="submit">로그인</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+
+<!-- 어드민 -->
+<div class="hide" id="appView">
+  <header class="top">
+    <div class="logo">NEOS<i>AD</i></div>
+    <span class="tag">문의 관리</span>
+    <span class="me" id="me">구글 시트 연동</span>
+    <a class="hide" id="openSheet" target="_blank" rel="noopener" style="height:34px;line-height:32px;border-radius:999px;border:1px solid #3A3A42;color:#fff;padding:0 14px;font-size:13px;font-weight:700;text-decoration:none">시트 열기</a>
+    <button type="button" id="logout">로그아웃</button>
+  </header>
+
+  <main class="wrap">
+    <div class="stats">
+      <button class="stat on" data-f="all"><small>전체 문의</small><b id="sAll">-</b></button>
+      <button class="stat new" data-f="신규"><small>신규 (미처리)</small><b id="sNew">-</b></button>
+      <button class="stat" data-f="today"><small>오늘 들어온 문의</small><b id="sToday">-</b></button>
+      <button class="stat" data-f="계약"><small>계약</small><b id="sDeal">-</b></button>
+    </div>
+
+    <div class="bar">
+      <select id="fStatus">
+        <option value="">상태 전체</option>
+        <option>신규</option><option>연락중</option><option>상담완료</option><option>계약</option><option>보류</option><option>무효</option>
+      </select>
+      <select id="fInd"><option value="">업종 전체</option></select>
+      <select id="fRange">
+        <option value="">기간 전체</option>
+        <option value="0">오늘</option>
+        <option value="7">최근 7일</option>
+        <option value="30">최근 30일</option>
+      </select>
+      <input type="search" id="fQ" placeholder="이름·연락처·문의 내용 검색">
+      <button class="btn ghost" type="button" id="reload">새로고침</button>
+      <span class="count" id="count"></span>
+    </div>
+
+    <div class="list">
+      <table>
+        <thead><tr><th>접수 시각</th><th>업종</th><th>이름</th><th>연락처</th><th>광고 상황</th><th>유입</th><th>상태</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty hide" id="empty">조건에 맞는 문의가 없어요</div>
+      <button class="more hide" id="more" type="button">더 보기</button>
+    </div>
+  </main>
+</div>
+
+<!-- 상세 -->
+<div class="dim hide" id="dim"></div>
+<aside class="panel hide" id="panel" aria-label="문의 상세">
+  <div class="ph1"><b id="pTitle">문의 상세</b><button class="x" type="button" id="pClose" aria-label="닫기">✕</button></div>
+  <div class="body">
+    <a class="call" id="pCall" href="#">전화 걸기 · <span id="pPhone"></span></a>
+    <dl class="info" id="pInfo"></dl>
+    <div class="edit">
+      <label>상태</label>
+      <div class="sts" id="pSts"></div>
+    </div>
+    <div class="edit">
+      <label for="pMemo">상담 메모</label>
+      <textarea id="pMemo" placeholder="통화 내용, 다음 연락 일정 등"></textarea>
+    </div>
+  </div>
+  <div class="foot"><span class="msg" id="pMsg"></span><button class="btn blue" type="button" id="pSave">저장</button></div>
+</aside>
+
+<script src="../config.js"></script>
+<script>
+(function(){
+  var STATUSES = ['신규','연락중','상담완료','계약','보류','무효'];
+  var PAGE = 100;
+  var $ = function(id){ return document.getElementById(id); };
+  var cfg = window.NEOS_CONFIG || {};
+  if (!cfg.SHEET_API_URL || cfg.SHEET_API_URL.indexOf('YOUR-') >= 0) {
+    $('loginErr').textContent = 'config.js에 구글 시트 웹 앱 주소를 먼저 넣어 주세요.';
+    return;
+  }
+  if (cfg.SHEET_URL) { $('openSheet').href = cfg.SHEET_URL; $('openSheet').classList.remove('hide'); }
+
+  var KEY = 'neos_admin_pw';
+  var pw = null;
+  try { pw = sessionStorage.getItem(KEY); } catch (e) {}
+  var leads = [], shown = PAGE, cur = null, quick = 'all';
+
+  // 구글 시트 API 호출 (비밀번호는 주소가 아닌 본문으로 전송)
+  async function api(action, extra){
+    var body = Object.assign({ action: action, password: pw }, extra || {});
+    try {
+      var res = await fetch(cfg.SHEET_API_URL, { method:'POST', body: JSON.stringify(body) });
+      return await res.json();
+    } catch (e) { return { ok:false, error:'network' }; }
+  }
+  var ERR = { wrong_password:'비밀번호가 맞지 않아요.', locked:'실패가 많아 10분간 잠겼어요. 잠시 후 다시 시도해 주세요.', not_configured:'시트에 관리자 비밀번호(ADMIN_PASSWORD)가 설정되지 않았어요.', network:'시트에 연결할 수 없어요. 웹 앱 주소를 확인해 주세요.' };
+
+  // ---------- 로그인 ----------
+  $('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var btn = e.target.querySelector('button'); btn.disabled = true; $('loginErr').textContent = '';
+    pw = e.target.pw.value;
+    var r = await api('login');
+    btn.disabled = false;
+    if (!r.ok) { pw = null; $('loginErr').textContent = ERR[r.error] || '로그인할 수 없어요.'; return; }
+    try { sessionStorage.setItem(KEY, pw); } catch (e2) {}
+    enter();
+  });
+  $('logout').addEventListener('click', function(){ try { sessionStorage.removeItem(KEY); } catch (e) {} location.reload(); });
+
+  function enter(){
+    $('loginView').classList.add('hide'); $('appView').classList.remove('hide');
+    load();
+  }
+  if (pw) enter();
+
+  // ---------- 불러오기 ----------
+  async function load(){
+    $('reload').disabled = true;
+    var r = await api('list');
+    $('reload').disabled = false;
+    if (!r.ok) {
+      if (r.error === 'wrong_password' || r.error === 'locked') { try { sessionStorage.removeItem(KEY); } catch (e) {} location.reload(); return; }
+      toast(ERR[r.error] || '불러오기 실패'); return;
+    }
+    leads = r.rows || [];
+    var inds = Array.from(new Set(leads.map(function(l){ return l.industry; }))).sort();
+    var keep = $('fInd').value;
+    $('fInd').innerHTML = '<option value="">업종 전체</option>' + inds.map(function(i){ return '<option>' + esc(i) + '</option>'; }).join('');
+    $('fInd').value = keep;
+    stats(); render();
+  }
+  $('reload').addEventListener('click', load);
+  setInterval(function(){ if (!document.hidden && $('panel').classList.contains('hide')) load(); }, 60000);
+
+  function isToday(d){ var t = new Date(); d = new Date(d); return d.toDateString() === t.toDateString(); }
+  function stats(){
+    $('sAll').textContent = leads.length;
+    $('sNew').textContent = leads.filter(function(l){ return l.status === '신규'; }).length;
+    $('sToday').textContent = leads.filter(function(l){ return isToday(l.created_at); }).length;
+    $('sDeal').textContent = leads.filter(function(l){ return l.status === '계약'; }).length;
+  }
+
+  // ---------- 필터 ----------
+  document.querySelectorAll('.stat').forEach(function(b){
+    b.addEventListener('click', function(){
+      quick = b.dataset.f;
+      document.querySelectorAll('.stat').forEach(function(x){ x.classList.toggle('on', x === b); });
+      $('fStatus').value = (quick === '신규' || quick === '계약') ? quick : '';
+      $('fRange').value = quick === 'today' ? '0' : '';
+      shown = PAGE; render();
+    });
+  });
+  ['fStatus','fInd','fRange'].forEach(function(id){ $(id).addEventListener('change', function(){ shown = PAGE; render(); }); });
+  $('fQ').addEventListener('input', function(){ shown = PAGE; render(); });
+  $('more').addEventListener('click', function(){ shown += PAGE; render(); });
+
+  function filtered(){
+    var st = $('fStatus').value, ind = $('fInd').value, rg = $('fRange').value, q = $('fQ').value.trim().replace(/-/g,'');
+    var from = null;
+    if (rg !== '') { from = new Date(); from.setHours(0,0,0,0); from.setDate(from.getDate() - Number(rg)); }
+    return leads.filter(function(l){
+      if (st && l.status !== st) return false;
+      if (ind && l.industry !== ind) return false;
+      if (from && new Date(l.created_at) < from) return false;
+      if (q) {
+        var hay = [l.name, l.phone, l.message, l.memo].join(' ');
+        if (hay.indexOf(q) < 0) return false;
+      }
+      return true;
+    });
+  }
+
+  // ---------- 목록 ----------
+  function render(){
+    var list = filtered();
+    $('count').textContent = list.length + '건';
+    $('empty').classList.toggle('hide', list.length > 0);
+    $('more').classList.toggle('hide', list.length <= shown);
+    $('rows').innerHTML = list.slice(0, shown).map(function(l){
+      return '<tr class="row' + (cur && cur.id === l.id ? ' sel' : '') + '" data-id="' + l.id + '">' +
+        '<td class="c-when when">' + fmt(l.created_at) + '</td>' +
+        '<td><span class="ind">' + esc(l.industry) + '</span></td>' +
+        '<td class="nm">' + (esc(l.name) || '<span style="color:var(--g2)">이름 없음</span>') + '</td>' +
+        '<td class="ph">' + phone(l.phone) + '</td>' +
+        '<td class="c-ad">' + esc(l.ad_status || '') + '</td>' +
+        '<td class="c-src"><div class="src">' + esc(src(l)) + '</div></td>' +
+        '<td><span class="badge b-' + l.status + '">' + l.status + '</span></td>' +
+      '</tr>';
+    }).join('');
+  }
+  $('rows').addEventListener('click', function(e){
+    var tr = e.target.closest('tr.row'); if (!tr) return;
+    open(leads.find(function(l){ return String(l.id) === tr.dataset.id; }));
+  });
+
+  // ---------- 상세 ----------
+  var pick = null;
+  function open(l){
+    cur = l; pick = l.status;
+    $('pTitle').textContent = (l.name || '이름 없음') + ' · ' + l.industry;
+    $('pPhone').textContent = phone(l.phone);
+    $('pCall').href = 'tel:' + l.phone;
+    var info = [
+      ['접수 시각', fmt(l.created_at, true)],
+      ['업종', l.industry],
+      ['이름', l.name || '-'],
+      ['광고 상황', l.ad_status || '-'],
+      ['문의 내용', l.message || '-'],
+      ['유입 경로', src(l) || '-'],
+      ['캠페인', [l.utm_campaign, l.utm_content].filter(Boolean).join(' / ') || '-'],
+      ['수정 시각', l.updated_at ? fmt(l.updated_at, true) : '-']
+    ];
+    $('pInfo').innerHTML = info.map(function(i){ return '<div><dt>' + i[0] + '</dt><dd>' + esc(i[1]) + '</dd></div>'; }).join('');
+    $('pSts').innerHTML = STATUSES.map(function(s){ return '<button type="button" class="' + (s === pick ? 'on' : '') + '">' + s + '</button>'; }).join('');
+    $('pMemo').value = l.memo || '';
+    $('pMsg').textContent = '';
+    $('dim').classList.remove('hide'); $('panel').classList.remove('hide');
+    render();
+  }
+  $('pSts').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    pick = b.textContent;
+    $('pSts').querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x === b); });
+  });
+  function close(){ $('dim').classList.add('hide'); $('panel').classList.add('hide'); cur = null; render(); }
+  $('pClose').addEventListener('click', close);
+  $('dim').addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && cur) close(); });
+
+  $('pSave').addEventListener('click', async function(){
+    if (!cur) return;
+    var btn = this; btn.disabled = true;
+    var memo = $('pMemo').value.trim().slice(0, 2000) || null;
+    var r = await api('update', { id: cur.id, status: pick, memo: memo || '' });
+    btn.disabled = false;
+    if (!r.ok) { $('pMsg').style.color = 'var(--red)'; $('pMsg').textContent = '저장 실패'; return; }
+    Object.assign(cur, r.row);
+    $('pMsg').style.color = ''; $('pMsg').textContent = '저장됐어요';
+    stats(); render();
+  });
+
+  // ---------- 도우미 ----------
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function phone(p){ p = String(p || ''); return p.length === 11 ? p.slice(0,3) + '-' + p.slice(3,7) + '-' + p.slice(7) : p.length === 10 ? p.slice(0,3) + '-' + p.slice(3,6) + '-' + p.slice(6) : p; }
+  function src(l){ return [l.utm_source, l.utm_medium].filter(Boolean).join(' · ') || (l.referrer ? '직접 · ' + l.referrer.replace(/^https?:\/\//,'').split('/')[0] : '직접 유입'); }
+  function fmt(d, full){
+    d = new Date(d);
+    var p = function(n){ return String(n).padStart(2,'0'); };
+    var t = p(d.getHours()) + ':' + p(d.getMinutes());
+    if (!full && isToday(d)) return '오늘 ' + t;
+    return (full ? d.getFullYear() + '.' : '') + p(d.getMonth()+1) + '.' + p(d.getDate()) + ' ' + t;
+  }
+  var tt;
+  function toast(m){ var el = document.createElement('div'); el.className = 'toast'; el.textContent = m; document.body.appendChild(el); clearTimeout(tt); tt = setTimeout(function(){ el.remove(); }, 2500); }
+})();
+</script>
+</body>
+</html>
