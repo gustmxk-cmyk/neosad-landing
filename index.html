@@ -505,6 +505,18 @@
 
 <script src="config.js"></script>
 <script>
+// 메타 픽셀 (config.js에 META_PIXEL_ID가 있을 때만)
+(function(){
+  var id = (window.NEOS_CONFIG || {}).META_PIXEL_ID;
+  if (!id) return;
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', id);
+  fbq('track', 'PageView');
+})();
+</script>
+<script>
 (function(){
   // 등장 애니메이션
   var rv = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); rv.unobserve(e.target); } }); }, { rootMargin:'0px 0px -8% 0px' });
@@ -596,7 +608,9 @@
     } catch (err) { ok = false; }
     sending = false; btn.disabled = false; btn.textContent = '무료 광고 진단 신청';
     if (!ok) { alert('접수 중 문제가 생겼어요. 연락처를 확인하시고 다시 시도해 주세요.'); return; }
-    f.style.display = 'none'; document.getElementById('done').style.display = 'block';
+    // 땡큐페이지로 이동 (메타 URL 전환 추적용, UTM 유지)
+    try { sessionStorage.setItem('neos_lead', '1'); } catch (err) {}
+    location.href = 'thanks/' + location.search;
   });
 })();
 </script>
