@@ -29,6 +29,7 @@
   .btn{height:48px;border:0;border-radius:12px;background:var(--bk);color:#fff;font-weight:800;cursor:pointer;padding:0 16px}
   .btn.blue{background:var(--blue)}
   .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+  .btn.del{background:#fff;color:var(--red);border:1.5px solid #FFD0CC}
   .btn:disabled{opacity:.5;cursor:default}
   .login .btn{width:100%;margin-top:22px}
   .err{margin-top:12px;color:var(--red);font-size:13px;min-height:18px}
@@ -194,7 +195,7 @@
       <textarea id="pMemo" placeholder="통화 내용, 다음 연락 일정 등"></textarea>
     </div>
   </div>
-  <div class="foot"><span class="msg" id="pMsg"></span><button class="btn blue" type="button" id="pSave">저장</button></div>
+  <div class="foot"><button class="btn del" type="button" id="pDel">삭제</button><span class="msg" id="pMsg"></span><button class="btn blue" type="button" id="pSave">저장</button></div>
 </aside>
 
 <script src="../config.js"></script>
@@ -368,6 +369,23 @@
     Object.assign(cur, r.row);
     $('pMsg').style.color = ''; $('pMsg').textContent = '저장됐어요';
     stats(); render();
+  });
+
+  $('pDel').addEventListener('click', async function(){
+    if (!cur) return;
+    var who = (cur.name || '이름 없음') + ' · ' + phone(cur.phone);
+    if (!confirm('이 문의를 삭제할까요?\n\n' + who + '\n\n구글 시트에서도 지워지고 되돌릴 수 없어요.')) return;
+    var btn = this; btn.disabled = true;
+    var r = await api('remove', { id: cur.id });
+    btn.disabled = false;
+    if (!r.ok) {
+      $('pMsg').style.color = 'var(--red)';
+      $('pMsg').textContent = r.error === 'unknown_action' ? '시트 스크립트 업데이트가 필요해요' : '삭제 실패';
+      return;
+    }
+    var id = cur.id;
+    leads = leads.filter(function(l){ return l.id !== id; });
+    close(); stats(); toast('삭제했어요');
   });
 
   // ---------- 도우미 ----------
