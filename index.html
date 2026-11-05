@@ -290,6 +290,50 @@
   fbq('init', id);
   fbq('track', 'PageView');
 })();
+// 방문 기록 (유입·체류시간·스크롤) → 구글 시트 '방문' 탭. 개인정보는 보내지 않음
+(function(){
+  var cfg = window.NEOS_CONFIG || {};
+  var api = (cfg.SHEET_API_URL && cfg.SHEET_API_URL.indexOf('YOUR-') < 0) ? cfg.SHEET_API_URL : null;
+  if (!api || navigator.webdriver) return;
+  var qs = new URLSearchParams(location.search);
+  function rid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  var uid;
+  try { uid = localStorage.getItem('neos_uid'); if (!uid) { uid = rid(); localStorage.setItem('neos_uid', uid); } } catch (e) { uid = rid(); }
+  var v = {
+    vid: rid(), uid: uid, dwell: 0, scroll: 0, form: false, lead: false,
+    device: /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) ? '모바일' : 'PC',
+    utm_source: qs.get('utm_source') || '', utm_medium: qs.get('utm_medium') || '',
+    utm_campaign: qs.get('utm_campaign') || '', utm_content: qs.get('utm_content') || '',
+    referrer: document.referrer || ''
+  };
+  // 체류시간: 화면이 보이는 동안만 셈
+  var since = document.visibilityState === 'visible' ? Date.now() : 0, acc = 0;
+  function dwell(){ return Math.min(1800, Math.round((acc + (since ? Date.now() - since : 0)) / 1000)); }
+  // 스크롤: 가장 많이 내려간 위치(%)
+  function onScroll(){
+    var h = document.documentElement, total = h.scrollHeight || 1;
+    var p = Math.min(100, Math.round((window.scrollY + window.innerHeight) / total * 100));
+    if (p > v.scroll) v.scroll = p;
+    var ap = document.getElementById('apply');
+    if (!v.form && ap && ap.getBoundingClientRect().top < window.innerHeight * .8) v.form = true;
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  function send(){
+    v.dwell = dwell();
+    var body = JSON.stringify({ action: 'visit', data: v });
+    var ok = false;
+    try { ok = navigator.sendBeacon && navigator.sendBeacon(api, new Blob([body], { type: 'text/plain' })); } catch (e) {}
+    if (!ok) { try { fetch(api, { method: 'POST', body: body, keepalive: true }); } catch (e) {} }
+  }
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') { if (since) { acc += Date.now() - since; since = 0; } send(); }
+    else since = Date.now();
+  });
+  window.addEventListener('pagehide', function(){ if (document.visibilityState !== 'hidden') send(); });
+  onScroll();
+  setTimeout(send, 1500); // 들어오자마자 1회 기록 (유입 인원)
+  window.neosVisit = { lead: function(){ v.lead = true; v.form = true; send(); } };
+})();
 // 채널톡 상담 (config.js에 CHANNEL_TALK_KEY가 있을 때만, 채널톡 기본 버튼 사용)
 (function(){
   var key = (window.NEOS_CONFIG || {}).CHANNEL_TALK_KEY;
@@ -365,6 +409,7 @@
     } catch (err) { ok = false; }
     sending = false; btn.disabled = false; btn.innerHTML = btnHTML;
     if (!ok) { alert('접수 중 문제가 생겼어요. 연락처를 확인하시고 다시 시도해 주세요.'); return; }
+    if (window.neosVisit) window.neosVisit.lead();
     // 땡큐페이지로 이동 (메타 URL 전환 추적용, UTM 유지)
     try { sessionStorage.setItem('neos_lead', '1'); } catch (err) {}
     location.href = 'thanks/' + location.search;

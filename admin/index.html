@@ -103,6 +103,45 @@
   .panel .foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center}
   .panel .foot .msg{font-size:13px;color:var(--green);margin-right:auto}
 
+  /* 탭 */
+  .tabs{display:flex;gap:4px;margin-left:6px}
+  .tabs button{height:34px;border-radius:999px;border:0;background:transparent;color:#9A9AA4;padding:0 14px;cursor:pointer;font-size:14px;font-weight:700}
+  .tabs button.on{background:#fff;color:var(--bk)}
+
+  /* 방문 통계 */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}
+  .kpi{background:#fff;border-radius:16px;padding:16px 18px}
+  .kpi small{display:block;font-size:12.5px;color:var(--g2);font-weight:700}
+  .kpi b{display:block;font-size:28px;font-weight:900;letter-spacing:-.03em;margin-top:2px;font-feature-settings:"tnum"}
+  .kpi span{display:block;font-size:12.5px;color:var(--g1);margin-top:2px;min-height:18px}
+  .kpi.hot b{color:var(--blue)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{background:#fff;border-radius:16px;padding:20px 22px;margin-top:10px}
+  .card h3{font-size:16px;font-weight:900;letter-spacing:-.03em}
+  .hint{font-size:12.5px;color:var(--g2);margin-top:2px}
+  .hbars{margin-top:14px;display:grid;gap:9px}
+  .hb{display:grid;grid-template-columns:92px 1fr 88px;align-items:center;gap:10px;font-size:13px}
+  .hb span{color:var(--g1);font-weight:600}
+  .hb .tr{height:12px;background:var(--soft);border-radius:6px;overflow:hidden}
+  .hb .tr i{display:block;height:100%;background:var(--bk);border-radius:6px}
+  .hb.form .tr i{background:var(--blue)}
+  .hb b{text-align:right;font-feature-settings:"tnum"}
+  .hb b small{color:var(--g2);font-weight:500;margin-left:4px}
+  .cols{display:flex;align-items:flex-end;gap:4px;height:180px;margin-top:18px;padding-bottom:22px;position:relative}
+  .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;min-width:0}
+  .col i{display:block;width:100%;max-width:34px;background:var(--bk);border-radius:5px 5px 0 0;min-height:2px}
+  .col i.lead{background:var(--blue)}
+  .col em{font-style:normal;font-size:11.5px;font-weight:700;color:var(--g1);margin-bottom:3px;font-feature-settings:"tnum"}
+  .col small{position:absolute;bottom:-20px;font-size:11px;color:var(--g2);white-space:nowrap}
+  .tscroll{overflow-x:auto;margin-top:12px}
+  .ctab th,.ctab td{padding:11px 12px;font-size:13px;white-space:nowrap}
+  .ctab td{font-feature-settings:"tnum"}
+  .ctab td:first-child,.ctab td:nth-child(2){max-width:220px;overflow:hidden;text-overflow:ellipsis}
+  .ctab td.c{font-weight:800;color:var(--blue)}
+  .foot-note{margin-top:14px;font-size:12.5px;color:var(--g2)}
+  @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr} }
+  @media (max-width:760px){ .tabs button{padding:0 10px;font-size:13px} .ctab thead{display:table-header-group} .ctab,.ctab tbody{display:table;width:100%} .ctab tr{display:table-row} .ctab td{display:table-cell;width:auto} }
+
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bk);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:40}
 
   /* 모바일: 표 → 카드 */
@@ -137,13 +176,65 @@
 <div class="hide" id="appView">
   <header class="top">
     <div class="logo">NEOS<i>AD</i></div>
-    <span class="tag">문의 관리</span>
+    <nav class="tabs"><button type="button" class="on" data-v="leadsView">문의 관리</button><button type="button" data-v="statsView">방문 통계</button></nav>
     <span class="me" id="me">구글 시트 연동</span>
     <a class="hide" id="openSheet" target="_blank" rel="noopener" style="height:34px;line-height:32px;border-radius:999px;border:1px solid #3A3A42;color:#fff;padding:0 14px;font-size:13px;font-weight:700;text-decoration:none">시트 열기</a>
     <button type="button" id="logout">로그아웃</button>
   </header>
 
-  <main class="wrap">
+  <main class="wrap hide" id="statsView">
+    <div class="bar" style="margin-top:0">
+      <select id="vRange">
+        <option value="1">오늘</option>
+        <option value="7" selected>최근 7일</option>
+        <option value="30">최근 30일</option>
+      </select>
+      <select id="vCamp"><option value="">캠페인 전체</option></select>
+      <select id="vDev"><option value="">기기 전체</option><option>모바일</option><option>PC</option></select>
+      <button class="btn ghost" type="button" id="vReload">새로고침</button>
+      <span class="count" id="vNote"></span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><small>유입 인원</small><b id="kUsers">-</b><span id="kVisits"></span></div>
+      <div class="kpi"><small>평균 체류시간</small><b id="kDwell">-</b><span id="kDwellMid"></span></div>
+      <div class="kpi"><small>평균 스크롤</small><b id="kScroll">-</b><span id="kBounce"></span></div>
+      <div class="kpi"><small>신청폼까지 본 비율</small><b id="kForm">-</b><span id="kFormN"></span></div>
+      <div class="kpi hot"><small>신청 전환율</small><b id="kConv">-</b><span id="kConvN"></span></div>
+    </div>
+
+    <div class="grid2">
+      <section class="card">
+        <h3>어디까지 내려봤나요</h3>
+        <p class="hint">전체 방문 중 해당 위치까지 스크롤한 비율</p>
+        <div class="hbars" id="scrollBars"></div>
+      </section>
+      <section class="card">
+        <h3>얼마나 머물렀나요</h3>
+        <p class="hint">화면을 보고 있던 시간 기준</p>
+        <div class="hbars" id="dwellBars"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h3 id="trendTitle">날짜별 유입</h3>
+      <div class="cols" id="trend"></div>
+    </section>
+
+    <section class="card">
+      <h3>캠페인 · 소재별</h3>
+      <p class="hint">메타 광고 URL 파라미터(utm_campaign · utm_content) 기준</p>
+      <div class="tscroll">
+        <table class="ctab">
+          <thead><tr><th>캠페인</th><th>광고(소재)</th><th>방문</th><th>평균 체류</th><th>평균 스크롤</th><th>폼 도달</th><th>신청</th><th>전환율</th></tr></thead>
+          <tbody id="campRows"></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="foot-note">방문 기록은 랜딩을 새 버전으로 올린 뒤부터 쌓여요. 같은 사람이 여러 번 들어오면 유입 인원은 1명, 방문은 여러 번으로 셉니다.</p>
+  </main>
+
+  <main class="wrap" id="leadsView">
     <div class="stats">
       <button class="stat on" data-f="all"><small>전체 문의</small><b id="sAll">-</b></button>
       <button class="stat new" data-f="신규"><small>신규 (미처리)</small><b id="sNew">-</b></button>
@@ -339,7 +430,8 @@
       ['광고 상황', l.ad_status || '-'],
       ['문의 내용', l.message || '-'],
       ['유입 경로', src(l) || '-'],
-      ['캠페인', [l.utm_campaign, l.utm_content].filter(Boolean).join(' / ') || '-'],
+      ['캠페인', l.utm_campaign || '-'],
+      ['광고(소재)', l.utm_content || '-'],
       ['수정 시각', l.updated_at ? fmt(l.updated_at, true) : '-']
     ];
     $('pInfo').innerHTML = info.map(function(i){ return '<div><dt>' + i[0] + '</dt><dd>' + esc(i[1]) + '</dd></div>'; }).join('');
@@ -387,6 +479,125 @@
     leads = leads.filter(function(l){ return l.id !== id; });
     close(); stats(); toast('삭제했어요');
   });
+
+  // ---------- 탭 ----------
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.tabs button').forEach(function(x){ x.classList.toggle('on', x === b); });
+      $('leadsView').classList.toggle('hide', b.dataset.v !== 'leadsView');
+      $('statsView').classList.toggle('hide', b.dataset.v !== 'statsView');
+      if (b.dataset.v === 'statsView' && !visits) loadVisits();
+    });
+  });
+
+  // ---------- 방문 통계 ----------
+  // 행: [시작ms, 방문자ID, 체류초, 스크롤%, 폼도달, 신청, 기기, source, medium, campaign, content]
+  var visits = null;
+  async function loadVisits(){
+    $('vReload').disabled = true; $('vNote').textContent = '불러오는 중…';
+    var r = await api('stats', { days: 31 });
+    $('vReload').disabled = false;
+    if (!r.ok) {
+      $('vNote').textContent = r.error === 'unknown_action' ? '시트 스크립트를 새 버전으로 배포해야 해요' : (ERR[r.error] || '불러오기 실패');
+      return;
+    }
+    visits = r.rows || [];
+    var camps = Array.from(new Set(visits.map(function(v){ return v[9]; }).filter(Boolean))).sort();
+    var keep = $('vCamp').value;
+    $('vCamp').innerHTML = '<option value="">캠페인 전체</option>' + camps.map(function(c){ return '<option>' + esc(c) + '</option>'; }).join('');
+    $('vCamp').value = keep;
+    drawVisits();
+  }
+  $('vReload').addEventListener('click', loadVisits);
+  ['vRange','vCamp','vDev'].forEach(function(id){ $(id).addEventListener('change', drawVisits); });
+
+  function pct(a, b){ return b ? Math.round(a / b * 1000) / 10 : 0; }
+  function dur(s){ s = Math.round(s); return s < 60 ? s + '초' : Math.floor(s / 60) + '분 ' + (s % 60 ? (s % 60) + '초' : ''); }
+  function median(arr){ if (!arr.length) return 0; var a = arr.slice().sort(function(x, y){ return x - y; }); var m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+
+  function drawVisits(){
+    if (!visits) return;
+    var days = Number($('vRange').value), camp = $('vCamp').value, dev = $('vDev').value;
+    var from = new Date(); from.setHours(0,0,0,0); from.setDate(from.getDate() - days + 1);
+    var L = visits.filter(function(v){ return v[0] >= from.getTime() && (!camp || v[9] === camp) && (!dev || v[6] === dev); });
+    var n = L.length;
+    var users = new Set(L.map(function(v){ return v[1]; })).size;
+    var dw = L.map(function(v){ return v[2]; });
+    var sumD = dw.reduce(function(a, b){ return a + b; }, 0);
+    var sumS = L.reduce(function(a, v){ return a + v[3]; }, 0);
+    var form = L.filter(function(v){ return v[4]; }).length;
+    var lead = L.filter(function(v){ return v[5]; }).length;
+    var quick = L.filter(function(v){ return v[2] < 10; }).length;
+    var mob = L.filter(function(v){ return v[6] === '모바일'; }).length;
+
+    $('vNote').textContent = n ? '방문 ' + n + '회 · 모바일 ' + pct(mob, n) + '% · PC ' + pct(n - mob, n) + '%' : '';
+    $('kUsers').textContent = users + '명';
+    $('kVisits').textContent = '방문 ' + n + '회';
+    $('kDwell').textContent = n ? dur(sumD / n) : '-';
+    $('kDwellMid').textContent = n ? '중간값 ' + dur(median(dw)) : '';
+    $('kScroll').textContent = n ? Math.round(sumS / n) + '%' : '-';
+    $('kBounce').textContent = n ? '10초 안에 나감 ' + pct(quick, n) + '%' : '';
+    $('kForm').textContent = n ? pct(form, n) + '%' : '-';
+    $('kFormN').textContent = n ? form + '회' : '';
+    $('kConv').textContent = n ? pct(lead, n) + '%' : '-';
+    $('kConvN').textContent = n ? '신청 ' + lead + '건' : '';
+
+    // 스크롤 도달률
+    var sb = [[25,'25%'],[50,'50%'],[75,'75%'],[100,'끝까지']].map(function(s){
+      var c = L.filter(function(v){ return v[3] >= s[0]; }).length; return [s[0] === 100 ? '끝까지' : s[1] + ' 지점', c, ''];
+    });
+    sb.push(['신청폼', form, 'form']);
+    $('scrollBars').innerHTML = hbars(sb, n);
+
+    // 체류시간 분포
+    var buckets = [['10초 미만',0,10],['10~30초',10,30],['30초~1분',30,60],['1~3분',60,180],['3분 이상',180,1e9]];
+    $('dwellBars').innerHTML = hbars(buckets.map(function(b){
+      return [b[0], L.filter(function(v){ return v[2] >= b[1] && v[2] < b[2]; }).length, ''];
+    }), n);
+
+    // 날짜별(오늘이면 시간별) 유입
+    var slots = [];
+    if (days === 1) {
+      $('trendTitle').textContent = '시간별 유입 (오늘)';
+      for (var h = 0; h < 24; h++) slots.push({ k: h, label: h + '시', v: 0, l: 0 });
+      L.forEach(function(v){ var s = slots[new Date(v[0]).getHours()]; s.v++; if (v[5]) s.l++; });
+    } else {
+      $('trendTitle').textContent = '날짜별 유입';
+      for (var i = 0; i < days; i++) {
+        var d = new Date(from); d.setDate(from.getDate() + i);
+        slots.push({ k: d.toDateString(), label: (d.getMonth() + 1) + '.' + d.getDate(), v: 0, l: 0 });
+      }
+      var idx = {}; slots.forEach(function(s, i2){ idx[s.k] = i2; });
+      L.forEach(function(v){ var s = slots[idx[new Date(v[0]).toDateString()]]; if (s) { s.v++; if (v[5]) s.l++; } });
+    }
+    var max = Math.max.apply(null, slots.map(function(s){ return s.v; }).concat([1]));
+    var every = slots.length > 16 ? Math.ceil(slots.length / 10) : 1;
+    $('trend').innerHTML = slots.map(function(s, i3){
+      return '<div class="col" title="' + s.label + ' · 방문 ' + s.v + '회 · 신청 ' + s.l + '건">' +
+        (s.v ? '<em>' + s.v + '</em>' : '') +
+        '<i style="height:' + (s.v / max * 130) + 'px"></i>' +
+        (i3 % every === 0 ? '<small>' + s.label + '</small>' : '') + '</div>';
+    }).join('');
+
+    // 캠페인·소재별
+    var g = {};
+    L.forEach(function(v){
+      var c = v[9] || (v[7] ? '(캠페인 없음)' : '직접 유입'), a = v[10] || '-';
+      var k = c + '\u0001' + a;
+      var o = g[k] || (g[k] = { c: c, a: a, n: 0, d: 0, s: 0, f: 0, l: 0 });
+      o.n++; o.d += v[2]; o.s += v[3]; o.f += v[4]; o.l += v[5];
+    });
+    var rows = Object.keys(g).map(function(k){ return g[k]; }).sort(function(x, y){ return y.n - x.n; });
+    $('campRows').innerHTML = rows.length ? rows.map(function(o){
+      return '<tr><td title="' + esc(o.c) + '">' + esc(o.c) + '</td><td title="' + esc(o.a) + '">' + esc(o.a) + '</td><td>' + o.n + '</td><td>' + dur(o.d / o.n) +
+        '</td><td>' + Math.round(o.s / o.n) + '%</td><td>' + pct(o.f, o.n) + '%</td><td>' + o.l + '</td><td class="c">' + pct(o.l, o.n) + '%</td></tr>';
+    }).join('') : '<tr><td colspan="8" style="color:var(--g2);text-align:center;padding:30px">이 기간에 방문 기록이 없어요</td></tr>';
+  }
+  function hbars(list, n){
+    return list.map(function(b){
+      return '<div class="hb' + (b[2] ? ' ' + b[2] : '') + '"><span>' + b[0] + '</span><div class="tr"><i style="width:' + pct(b[1], n) + '%"></i></div><b>' + pct(b[1], n) + '%<small>' + b[1] + '</small></b></div>';
+    }).join('');
+  }
 
   // ---------- 도우미 ----------
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
